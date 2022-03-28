@@ -8,31 +8,28 @@
 #include <qwt/qwt_plot.h>
 #include <qwt/qwt_plot_curve.h>
 #include <cmath>
-using namespace std;
-
-double pixel_max =0;
-float Pixel =0;
-float temp;
-int colorR = 0;
-int colorG = 0;
-int colorB = 0;
 
 MyWidget::MyWidget () {
 
         button = new QPushButton("Reset");
-        button->move(450,470);
+        button->move(650,300);
         button->setParent(this);
         button->resize(60, 20);
         connect(button, &QPushButton::clicked, this, &MyWidget::reset);
        
         // startTimer(this->intervalTime);
-        resize(750, 750);
+        resize(720, 470);
 
 	thermo = new QwtThermo;
-	thermo->move(680,100);
+	thermo->move(650,20);
 	thermo->setParent(this);
-	thermo->setFillBrush( QBrush(Qt::red) );
-	thermo->setScale(40,300);
+	thermo->setFillBrush( QBrush(Qt::blue) );
+	thermo->setScale(0,40);
+	thermo->setScaleMaxMajor(30);
+        thermo->setAlarmEnabled(true);
+        thermo->setAlarmBrush(Qt::red);
+        thermo->setAlarmLevel(30);
+
 	thermo->show();
 }
 
@@ -40,16 +37,15 @@ void MyWidget::paintEvent(QPaintEvent *event){
         QPainter painter(this);
                 for(int i = 0;i<32;i++) {
                         for(int j = 0;j<24;j++) {
-                                Pixel = this->pixel[i][j];
-	                        // int colorR = abs(0-Pixel);
-	                        // int colorG = abs(127-Pixel);
-	                        // int colorB = abs(255-Pixel);
-	                        cout << "Pixel = " << Pixel << endl;
+                                Pixel = pixel[i][j] / 38 * 255;
+                                Pixel = (Pixel > 255) ? 255 : Pixel;
+                                Pixel = (Pixel < 0) ? 0 : Pixel;
+	                        // cout << "Pixel = " << Pixel << endl;
                                 if(Pixel>=0 && Pixel <= 63) {
 			         	colorR = 0;
 			         	colorG = 0;
 			         	temp = ((float) Pixel)/64*255;
-			         	cout << temp << endl;
+			         	// cout << temp << endl;
 		                	colorB = (int) floor(temp);	     
                                      	QPen mypen(QColor(colorR,colorG,colorB));
                                      	mypen.setWidth(20);
@@ -84,45 +80,47 @@ void MyWidget::paintEvent(QPaintEvent *event){
                                         painter.setPen(mypen);
                                 }
 			
-                        cout<<"R:"<<colorR<<" G:"<<colorG<<" B:"<<colorB<<endl;
+                        // cout<<"R:"<<colorR<<" G:"<<colorG<<" B:"<<colorB<<endl;
                         painter.drawPoint((2*i-1)*10,(2*j-1)*10);
-                        // cout<<"pixel1 is "<<endl;
-                        // cout<<Pixel<<endl;
                 }
         }
 }
 
 void MyWidget::reset() {
-// set up the initial plot data
+        // set up the initial plot data
         for(int i = 0;i<32;i++) {
                 for(int j = 0;j<24;j++) {
                         this->pixel[i][j] = 0;
-                        cout << this->pixel[i][j] << endl;
+                        // cout << this->pixel[i][j] << endl;
                 }
         }
+        // read_data = true;
         this->update();
 }
 
 void MyWidget::timerEvent(QTimerEvent*) {
-        for(int i = 0;i<32;i++) {
-                for(int j = 0;j<24;j++) {
-                        this->pixel[i][j] = (10 + rand() % (200+i - 10 + 1));
-                        if(i == 0 && j == 0) {
-                                pixel_max = this->pixel[i][j];
-                        }
-			else if(this->pixel[i][j] > pixel_max) {
-				pixel_max = this->pixel[i][j];
-			}
-		        //cout << this->pixel[i][j] << endl;
-			cout << pixel_max << endl;
-                        //cout<<"R:"<<colorR<<"G:"<<colorG<<"B:"<<colorB<endl;
-			
-                }
+        // for(int i = 0;i<32;i++) {
+        //         for(int j = 0;j<24;j++) {
+        //                 this->pixel[i][j] = (10 + rand() % (200+i - 10 + 1));
+        //                 if(i == 0 && j == 0) {
+        //                         pixel_max = this->pixel[i][j];
+        //                 }
+	// 		else if(this->pixel[i][j] > pixel_max) {
+	// 			pixel_max = this->pixel[i][j];
+	// 		}
+	// 	        // cout << this->pixel[i][j] << endl;
+	// 		// cout << pixel_max << endl;
+        //                 // cout<<"R:"<<colorR<<"G:"<<colorG<<"B:"<<colorB<endl;
+        //         }
+        // }
+        // thermo->setValue(pixel_max);
+        
+        if(!read_data) {
+                read_data = true;
+                //cout << read_data << endl;
         }
-	thermo->setValue(pixel_max);
+	
         this->update();
-//	thermo->setValue(pixel_max);
-
 }
 
 void MyWidget::hasValue(float* value) {
