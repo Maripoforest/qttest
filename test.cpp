@@ -20,6 +20,8 @@ int main(int argc, char** argv){
     
     mlx90640.registerCallback(&mywidget);
     mlx90640.start();
+    mywidget.show();
+    app.exec();
     getchar();
     mlx90640.stop();
 
